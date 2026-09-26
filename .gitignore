@@ -1,0 +1,17 @@
+# Python bytecode and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+
+# Local test and OS artifacts
+.pytest_cache/
+.DS_Store
+Thumbs.db

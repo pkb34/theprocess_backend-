@@ -1,0 +1,24 @@
+### 1. Get all journal entries; a fresh start should return []
+GET http://127.0.0.1:8000/entries
+Accept: application/json
+
+### 2. Submit a journal entry; should return 201 and the created entry
+POST http://127.0.0.1:8000/entries
+Content-Type: application/json
+
+{
+  "title": "My first journal entry",
+  "content": "Today I completed the Lydia and Regan FastAPI demo."
+}
+
+### 3. Get all journal entries; should include the entry just submitted
+GET http://127.0.0.1:8000/entries
+Accept: application/json
+
+### 4. Missing content; should return 422
+POST http://127.0.0.1:8000/entries
+Content-Type: application/json
+
+{
+  "title": "Example with missing content"
+}
