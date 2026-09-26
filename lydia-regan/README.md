@@ -2,6 +2,14 @@
 
 A minimal FastAPI journal demo with an interactive API page.
 
+## Code structure
+
+The demo follows the structure of the repository's original `main.py`: a FastAPI app, Pydantic models, a shared in-memory list, and regular `def` route functions ordered as root, create, and list.
+
+`EntryCreate` describes the submitted journal data, and `Entry` adds the generated ID and timestamp. POST returns one created entry with status `201`; GET returns all entries. These fields, validation rules, and response formats remain the same.
+
+A lock protects ID assignment and list updates because synchronous route functions can run concurrently. GET returns a copy of the list while holding the same lock. This still uses one server process and in-memory storage.
+
 ## Run locally
 
 Install Python 3.10 or later. From the repository root, create a virtual environment:

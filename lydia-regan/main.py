@@ -1,6 +1,7 @@
 """Lydia & Regan: a FastAPI demo for creating and reading journal entries."""
 
 from datetime import datetime, timezone
+from threading import Lock
 
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
@@ -32,17 +33,13 @@ class Entry(EntryCreate):
 
 # In-memory demo storage: resets on restart. Run with a single server process.
 entries: list[Entry] = []
+# Synchronous route functions can run concurrently, so protect shared storage.
+entries_lock = Lock()
 
 
 @app.get("/", include_in_schema=False)
-async def home():
+def root():
     return RedirectResponse(url="/docs")
-
-
-@app.get("/entries", response_model=list[Entry], tags=["Journal"], summary="Get all journal entries")
-async def get_entries():
-    """Return a JSON array, or [] if no entries have been created."""
-    return entries
 
 
 @app.post(
@@ -52,16 +49,24 @@ async def get_entries():
     tags=["Journal"],
     summary="Create a journal entry",
 )
-async def create_entry(entry: EntryCreate):
+def create_entry(entry: EntryCreate):
     """Accept a title and content, add an ID and UTC timestamp, then save and return the entry."""
-    new_entry = Entry(
-        id=len(entries) + 1,
-        title=entry.title,
-        content=entry.content,
-        created_at=datetime.now(timezone.utc),
-    )
-    entries.append(new_entry)
+    with entries_lock:
+        new_entry = Entry(
+            id=len(entries) + 1,
+            title=entry.title,
+            content=entry.content,
+            created_at=datetime.now(timezone.utc),
+        )
+        entries.append(new_entry)
     return new_entry
+
+
+@app.get("/entries", response_model=list[Entry], tags=["Journal"], summary="Get all journal entries")
+def list_entries():
+    """Return a JSON array, or [] if no entries have been created."""
+    with entries_lock:
+        return entries.copy()
 
 
 if __name__ == "__main__":
